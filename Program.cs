@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace EscapeFromTheWoods
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -13,7 +14,7 @@ namespace EscapeFromTheWoods
             string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True";
             DBwriter db = new DBwriter(connectionString);
 
-            string path = @"C:\NET\monkeys";
+            string path = @"C:\Users\samca\Documents\programerenSpecialisatie\OpdrachtEscapeTheWoods\monkey";
             Map m1 = new Map(0, 500, 0, 500);
             Wood w1 = WoodBuilder.GetWood(500, m1, path,db);
             w1.PlaceMonkey("Alice", IDgenerator.GetMonkeyID());
@@ -40,9 +41,10 @@ namespace EscapeFromTheWoods
             w1.WriteWoodToDB();
             w2.WriteWoodToDB();
             w3.WriteWoodToDB();
-            w1.Escape();
-            w2.Escape();
-            w3.Escape();
+
+            await w1.Escape();
+            await w2.Escape();
+            await w3.Escape();
             
             stopwatch.Stop();
             // Write result.
