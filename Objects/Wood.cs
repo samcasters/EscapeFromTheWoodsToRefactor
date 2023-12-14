@@ -9,6 +9,7 @@ namespace EscapeFromTheWoods
 {
     public class Wood
     {
+
         private const int drawingFactor = 8;
         private string path;
         private DBwriter db;
