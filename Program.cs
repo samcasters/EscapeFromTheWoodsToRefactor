@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EscapeFromTheWoods.Database;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -13,9 +14,9 @@ namespace EscapeFromTheWoods
             Stopwatch stopwatch = new Stopwatch();
             Stopwatch stopwatch2 = new Stopwatch();
             stopwatch.Start();
-             string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True"; //sql
-            // string connectionString = @"mongodb+srv://samcasters:26NoekiePoekie@belgica2023donderdag.wqre6jk.mongodb.net/et/"; //mongodb
-            DBwriter db = new DBwriter(connectionString);
+            //string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True"; //sql
+            string connectionString = @"mongodb+srv://samcasters:26NoekiePoekie@belgica2023donderdag.wqre6jk.mongodb.net/et/"; //mongodb
+            MongoDBwriter db = new MongoDBwriter(connectionString);
             WoodBuilder woodBuilder = new WoodBuilder();
 
             string path = @"C:\Users\samca\Documents\programerenSpecialisatie\OpdrachtEscapeTheWoods\monkey";
@@ -34,22 +35,22 @@ namespace EscapeFromTheWoods
             Wood w2 = woods[1];
             Wood w3 = woods[2];
             Console.WriteLine("1");
-            w1.PlaceMonkey("Alice", IDgenerator.GetMonkeyID());
-            w1.PlaceMonkey("Janice", IDgenerator.GetMonkeyID());
-            w1.PlaceMonkey("Toby", IDgenerator.GetMonkeyID());
-            w1.PlaceMonkey("Mindy", IDgenerator.GetMonkeyID());
-            w1.PlaceMonkey("Jos", IDgenerator.GetMonkeyID());
+            w1.PlaceMonkey("Alice", IDgenerator.GetNewID());
+            w1.PlaceMonkey("Janice", IDgenerator.GetNewID());
+            w1.PlaceMonkey("Toby", IDgenerator.GetNewID());
+            w1.PlaceMonkey("Mindy", IDgenerator.GetNewID());
+            w1.PlaceMonkey("Jos", IDgenerator.GetNewID());
             
-            w2.PlaceMonkey("Tom", IDgenerator.GetMonkeyID());
-            w2.PlaceMonkey("Jerry", IDgenerator.GetMonkeyID());
-            w2.PlaceMonkey("Tiffany", IDgenerator.GetMonkeyID());
-            w2.PlaceMonkey("Mozes", IDgenerator.GetMonkeyID());
-            w2.PlaceMonkey("Jebus", IDgenerator.GetMonkeyID());
+            w2.PlaceMonkey("Tom", IDgenerator.GetNewID());
+            w2.PlaceMonkey("Jerry", IDgenerator.GetNewID());
+            w2.PlaceMonkey("Tiffany", IDgenerator.GetNewID());
+            w2.PlaceMonkey("Mozes", IDgenerator.GetNewID());
+            w2.PlaceMonkey("Jebus", IDgenerator.GetNewID());
 
-            w3.PlaceMonkey("Kelly", IDgenerator.GetMonkeyID());
-            w3.PlaceMonkey("Kenji", IDgenerator.GetMonkeyID());
-            w3.PlaceMonkey("Kobe", IDgenerator.GetMonkeyID());
-            w3.PlaceMonkey("Kendra", IDgenerator.GetMonkeyID());
+            w3.PlaceMonkey("Kelly", IDgenerator.GetNewID());
+            w3.PlaceMonkey("Kenji", IDgenerator.GetNewID());
+            w3.PlaceMonkey("Kobe", IDgenerator.GetNewID());
+            w3.PlaceMonkey("Kendra", IDgenerator.GetNewID());
             Console.WriteLine("2");
             stopwatch2.Start();
             List<Task> tasksWrite = new List<Task>

@@ -5,6 +5,9 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.Threading.Tasks;
+using EscapeFromTheWoods.Database;
+using EscapeFromTheWoods.Database.Model;
+using EscapeFromTheWoods.Database.exceptions;
 
 namespace EscapeFromTheWoods
 {
@@ -13,22 +16,29 @@ namespace EscapeFromTheWoods
 
         private const int drawingFactor = 8;
         private string path;
-        private DBwriter db;
+        // private DBwriter db;
         private Random r = new Random(1);
-        public int woodID { get; set; }
+        public string woodID { get; set; }
         public List<Tree> trees { get; set; }
         public List<Monkey> monkeys { get; private set; }
         private Map map;
-        public Wood(int woodID, List<Tree> trees, Map map, string path, DBwriter db)
+
+        private MongoDBwriter mongoDB;
+        private WoodModel WoodModel;
+
+        public Wood(string woodID, List<Tree> trees, Map map, string path, MongoDBwriter mongoDB)
         {
             this.woodID = woodID;
             this.trees = trees;
             this.monkeys = new List<Monkey>();
             this.map = map;
             this.path = path;
-            this.db = db;
+            //this.db = db;
+            this.mongoDB = mongoDB;
+            WoodModel = new WoodModel(woodID,map.xmax, map.ymax);
         }
-        public async Task PlaceMonkey(string monkeyName, int monkeyID)
+
+        public async Task PlaceMonkey(string monkeyName, string monkeyID)
         {
             int treeNr;
             do
@@ -40,54 +50,22 @@ namespace EscapeFromTheWoods
             monkeys.Add(m);
             trees[treeNr].hasMonkey = true;
         }
-        public async Task Escape()
-        {
-            List<List<Tree>> routes = new List<List<Tree>>();
-            foreach (Monkey m in monkeys)
-            {
-               routes.Add(await EscapeMonkey(m));
-            }                
-            WriteEscaperoutesToBitmap(routes);           
-        }
-        private async Task WriteRouteToDB(Monkey monkey, List<Tree> route)
-        {
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine($"{woodID}:write db routes {woodID},{monkey.name} start");
 
-            List<DBMonkeyRecord> records = new List<DBMonkeyRecord>();
-            List<Task> tasks = new List<Task>();
-
-            for (int j = 0; j < route.Count; j++)
-            {
-                tasks.Add(CreateDBMonkeyRecordAsync(records, monkey, j, route[j]));
-            }
-
-            await Task.WhenAll(tasks);
-
-            db.WriteMonkeyRecords(records);
-
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine($"{woodID}:write db routes {woodID},{monkey.name} end");
-        }
-
-        private async Task CreateDBMonkeyRecordAsync(List<DBMonkeyRecord> records, Monkey monkey, int index, Tree tree)
-        {
-            records.Add(new DBMonkeyRecord(monkey.monkeyID, monkey.name, woodID, index, tree.treeID, tree.x, tree.y));
-        }
         public async void WriteEscaperoutesToBitmap(List<List<Tree>> routes)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{woodID}:write bitmap routes {woodID} start");
             Color[] cvalues = new Color[] { Color.Red, Color.Yellow, Color.Blue, Color.Cyan, Color.GreenYellow };
             Bitmap bm = new Bitmap((map.xmax - map.xmin) * drawingFactor, (map.ymax - map.ymin) * drawingFactor);
             Graphics g = Graphics.FromImage(bm);
             int delta = drawingFactor / 2;
             Pen p = new Pen(Color.Green, 1);
-            List<Task> tasks = new List<Task>();
+
+            List<Task> ellipseTasks = new List<Task>();
             foreach (Tree t in trees)
             {
-                g.DrawEllipse(p, t.x * drawingFactor, t.y * drawingFactor, drawingFactor, drawingFactor);
+                ellipseTasks.Add(DrawEllipseAsync(g, p, t.x * drawingFactor, t.y * drawingFactor, drawingFactor, drawingFactor));
             }
+            await Task.WhenAll(ellipseTasks);
+
             int colorN = 0;
             foreach (List<Tree> route in routes)
             {
@@ -97,83 +75,27 @@ namespace EscapeFromTheWoods
                 Pen pen = new Pen(color, 1);
                 g.DrawEllipse(pen, p1x - delta, p1y - delta, drawingFactor, drawingFactor);
                 g.FillEllipse(new SolidBrush(color), p1x - delta, p1y - delta, drawingFactor, drawingFactor);
+
+                List<Task> lineTasks = new List<Task>();
                 for (int i = 1; i < route.Count; i++)
                 {
-                    g.DrawLine(pen, p1x, p1y, route[i].x * drawingFactor + delta, route[i].y * drawingFactor + delta);
+                    lineTasks.Add(DrawLineAsync(g, pen, p1x, p1y, route[i].x * drawingFactor + delta, route[i].y * drawingFactor + delta));
                     p1x = route[i].x * drawingFactor + delta;
                     p1y = route[i].y * drawingFactor + delta;
                 }
+                await Task.WhenAll(lineTasks);
+
                 colorN++;
             }
             bm.Save(Path.Combine(path, woodID.ToString() + "_escapeRoutes.jpg"), ImageFormat.Jpeg);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{woodID}:write bitmap routes {woodID} end");
         }
-        public async Task WriteWoodToDB()
+        private async Task DrawEllipseAsync(Graphics graphics,Pen pen,int x,int y,int width,int height)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"{woodID}: write db wood {woodID} start");
-
-            List<DBWoodRecord> records = new List<DBWoodRecord>();
-            
-            foreach (Tree t in trees)
-            {
-                CreateDBWoodRecordAsync(records, t);
-            }
-
-            db.WriteWoodRecords(records);
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"{woodID}: write db wood {woodID} end");
+            graphics.DrawEllipse(pen, x, y, width, height);
         }
-
-        private void CreateDBWoodRecordAsync(List<DBWoodRecord> records, Tree tree)
+        private async Task DrawLineAsync(Graphics graphics, Pen pen, int x1, int y1, int x2, int y2)
         {
-            records.Add(new DBWoodRecord(woodID, tree.treeID, tree.x, tree.y));
-        }
-        public async Task<List<Tree>> EscapeMonkey(Monkey monkey)
-        {
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"{woodID}:start {woodID},{monkey.name}");
-            Dictionary<int, bool> visited = new Dictionary<int, bool>();
-            trees.ForEach(x => visited.Add(x.treeID, false));
-            List<Tree> route = new List<Tree>() { monkey.tree };
-
-            do
-            {
-                visited[monkey.tree.treeID] = true;
-                SortedList<double, List<Tree>> distanceToMonkey = new SortedList<double, List<Tree>>();
-
-                //zoek dichtste boom die nog niet is bezocht asynchronously
-                List<Task> tasks = new List<Task>();
-                foreach (Tree t in trees)
-                {
-                    if ((!visited[t.treeID]) && (!t.hasMonkey))
-                    {
-                        tasks.Add(ProcessTreeAsync(t, distanceToMonkey, monkey.tree));
-                    }
-                }
-
-                //distance to border            
-                //noord oost zuid west
-                double distanceToBorder = (new List<double>(){ map.ymax - monkey.tree.y,
-                map.xmax - monkey.tree.x,monkey.tree.y-map.ymin,monkey.tree.x-map.xmin }).Min();
-
-                if (distanceToMonkey.Count == 0 || distanceToBorder < distanceToMonkey.First().Key)
-                {
-                    tasks.Add(WriteRouteToDBAsync(monkey, route));
-                    await Task.WhenAll(tasks);
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine($"{woodID}:end {woodID},{monkey.name}");
-                    return route;
-                }
-
-                route.Add(distanceToMonkey.First().Value.First());
-                monkey.tree = distanceToMonkey.First().Value.First();
-
-                await Task.WhenAll(tasks);
-            }
-            while (true);
+            graphics.DrawLine(pen, x1, y1, x2, y2);
         }
 
         private async Task ProcessTreeAsync(Tree tree, SortedList<double, List<Tree>> distanceToMonkey, Tree monkeyTree)
@@ -192,10 +114,109 @@ namespace EscapeFromTheWoods
             }
         }
 
-        private async Task WriteRouteToDBAsync(Monkey monkey, List<Tree> route)
+        public async Task Escape()
         {
-            Console.WriteLine($"{woodID}: Writing route to DB for {woodID},{monkey.name}");
-            WriteRouteToDB(monkey, route);
+            List<List<Tree>> routes = new List<List<Tree>>();
+            foreach (Monkey m in monkeys)
+            {
+                routes.Add(await EscapeMonkey(m));
+            }
+            WriteEscaperoutesToBitmap(routes);
+        }
+        public async Task<List<Tree>> EscapeMonkey(Monkey monkey)
+        {
+            Dictionary<string, bool> visited = new Dictionary<string, bool>();
+            trees.ForEach(x => visited.Add(x.treeID, false));
+            List<Tree> route = new List<Tree>() { monkey.tree };
+
+            
+            do
+            {
+                visited[monkey.tree.treeID] = true;
+                SortedList<double, List<Tree>> distanceToMonkey = new SortedList<double, List<Tree>>();
+
+                //zoek dichtste boom die nog niet is bezocht asynchronously
+                List<Task> tasks = new List<Task>();
+                foreach (Tree t in trees)
+                {
+                    if ((!visited[t.treeID]) && (!t.hasMonkey))
+                    {
+                        tasks.Add(ProcessTreeAsync(t, distanceToMonkey, monkey.tree));
+                    }
+                }
+                await Task.WhenAll(tasks);
+                //distance to border            
+                //noord oost zuid west
+                double distanceToBorder = (new List<double>(){ map.ymax - monkey.tree.y,
+                map.xmax - monkey.tree.x,monkey.tree.y-map.ymin,monkey.tree.x-map.xmin }).Min();
+
+                if (distanceToMonkey.Count == 0 || distanceToBorder < distanceToMonkey.First().Key)
+                {
+                    WriteRouteToDB(monkey, route);
+                    return route;
+                }
+
+                route.Add(distanceToMonkey.First().Value.First());
+                monkey.tree = distanceToMonkey.First().Value.First();
+            }
+            while (true);
+        }
+        private async void WriteRouteToDB(Monkey monkey, List<Tree> route)
+        {
+            List<PathModel> paths = new List<PathModel>();
+            
+            List<Task> tasks = new List<Task>();
+            for (int j = 0; j < route.Count; j++)
+            {
+                tasks.Add(CreateAndAddPathModelAsync(paths, j, monkey, route[j]));
+            }
+            await Task.WhenAll(tasks);
+            WritePathsToDB(paths);
+        }
+        private async Task CreateAndAddPathModelAsync(List<PathModel> paths, int index, Monkey monkey, Tree tree)
+        {
+            paths.Add(new PathModel(IDgenerator.GetNewID(),index, monkey.monkeyID, tree.treeID));
+        }
+        private async void WritePathsToDB(List<PathModel> paths)
+        {
+            List<Task> tasks = new List<Task>();
+            foreach (PathModel pathModel in paths)
+            {
+                tasks.Add(mongoDB.WritePathAsync(pathModel));
+            }
+            await Task.WhenAll(tasks);
+        }
+
+        public async Task WriteWoodToDB()
+        {
+            try
+            {
+                await Console.Out.WriteLineAsync("write wood ping");
+                List<Task> tasks = new List<Task>();
+                List<TreeModel> treeModels = new List<TreeModel>();
+                foreach (Tree t in trees)
+                {
+                    tasks.Add(TreeToTreeModels(treeModels, t));
+                }
+                mongoDB.WriteTrees(treeModels);
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                throw new ObjectException("WriteWoodToDB",ex);
+            }
+        }
+        private async Task TreeToTreeModels(List<TreeModel> treeModels, Tree tree)
+        {
+            try
+            {
+                TreeModel treeModel = new TreeModel(tree.treeID,tree.x, tree.y, woodID);
+                treeModels.Add(treeModel);
+            }
+            catch (Exception ex)
+            {
+                throw new ObjectException($"TreeToTreeModels  id:{tree.treeID}", ex);
+            }
         }
     }
 }

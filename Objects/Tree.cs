@@ -6,14 +6,14 @@ namespace EscapeFromTheWoods
 {
     public class Tree
     {
-        public Tree(int treeID, int x, int y)
+        public Tree(string treeID, int x, int y)
         {
             this.treeID = treeID;
             this.x = x;
             this.y = y;
             this.hasMonkey = false;
         }
-        public int treeID { get; set; }
+        public string treeID { get; set; }
         public int x { get; set; }
         public int y { get; set; }
         public bool hasMonkey { get; set; }

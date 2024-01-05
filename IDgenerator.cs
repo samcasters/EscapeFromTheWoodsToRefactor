@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,20 +8,14 @@ namespace EscapeFromTheWoods
 {
     public static class IDgenerator
     {
-        private static int treeID = 0;
-        private static int woodID = 0;
-        private static int monkeyID = 0;
-        public static int GetTreeID()
+        [BsonId]
+        private static ObjectId objectID;
+
+        public static string GetNewID()
         {
-            return treeID++;
-        }
-        public static int GetMonkeyID()
-        {
-            return monkeyID++;
-        }
-        public static int GetWoodID()
-        {
-            return woodID++;
+            objectID = ObjectId.GenerateNewId();
+            string stringId = $"{objectID}";
+            return stringId;
         }
     }
 }
