@@ -28,7 +28,7 @@ namespace EscapeFromTheWoods
             this.path = path;
             this.db = db;
         }
-        public void PlaceMonkey(string monkeyName, int monkeyID)
+        public async Task PlaceMonkey(string monkeyName, int monkeyID)
         {
             int treeNr;
             do
@@ -72,12 +72,9 @@ namespace EscapeFromTheWoods
 
         private async Task CreateDBMonkeyRecordAsync(List<DBMonkeyRecord> records, Monkey monkey, int index, Tree tree)
         {
-            // Simulate an asynchronous operation (replace with your actual asynchronous code)
-            await Task.Delay(100);  // Placeholder for actual asynchronous code logic
-
             records.Add(new DBMonkeyRecord(monkey.monkeyID, monkey.name, woodID, index, tree.treeID, tree.x, tree.y));
         }
-        public void WriteEscaperoutesToBitmap(List<List<Tree>> routes)
+        public async void WriteEscaperoutesToBitmap(List<List<Tree>> routes)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"{woodID}:write bitmap routes {woodID} start");
@@ -86,6 +83,7 @@ namespace EscapeFromTheWoods
             Graphics g = Graphics.FromImage(bm);
             int delta = drawingFactor / 2;
             Pen p = new Pen(Color.Green, 1);
+            List<Task> tasks = new List<Task>();
             foreach (Tree t in trees)
             {
                 g.DrawEllipse(p, t.x * drawingFactor, t.y * drawingFactor, drawingFactor, drawingFactor);
@@ -117,14 +115,11 @@ namespace EscapeFromTheWoods
             Console.WriteLine($"{woodID}: write db wood {woodID} start");
 
             List<DBWoodRecord> records = new List<DBWoodRecord>();
-            List<Task> tasks = new List<Task>();
-
+            
             foreach (Tree t in trees)
             {
-                tasks.Add(CreateDBWoodRecordAsync(records, t));
+                CreateDBWoodRecordAsync(records, t);
             }
-
-            await Task.WhenAll(tasks);
 
             db.WriteWoodRecords(records);
 
@@ -132,11 +127,8 @@ namespace EscapeFromTheWoods
             Console.WriteLine($"{woodID}: write db wood {woodID} end");
         }
 
-        private async Task CreateDBWoodRecordAsync(List<DBWoodRecord> records, Tree tree)
+        private void CreateDBWoodRecordAsync(List<DBWoodRecord> records, Tree tree)
         {
-            // Simulate an asynchronous operation (replace with actual asynchronous code if needed)
-            await Task.Delay(100);
-
             records.Add(new DBWoodRecord(woodID, tree.treeID, tree.x, tree.y));
         }
         public async Task<List<Tree>> EscapeMonkey(Monkey monkey)
@@ -162,16 +154,15 @@ namespace EscapeFromTheWoods
                     }
                 }
 
-                await Task.WhenAll(tasks);
-
                 //distance to border            
                 //noord oost zuid west
                 double distanceToBorder = (new List<double>(){ map.ymax - monkey.tree.y,
-        map.xmax - monkey.tree.x,monkey.tree.y-map.ymin,monkey.tree.x-map.xmin }).Min();
+                map.xmax - monkey.tree.x,monkey.tree.y-map.ymin,monkey.tree.x-map.xmin }).Min();
 
                 if (distanceToMonkey.Count == 0 || distanceToBorder < distanceToMonkey.First().Key)
                 {
-                    await WriteRouteToDBAsync(monkey, route);
+                    tasks.Add(WriteRouteToDBAsync(monkey, route));
+                    await Task.WhenAll(tasks);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine($"{woodID}:end {woodID},{monkey.name}");
                     return route;
@@ -179,6 +170,8 @@ namespace EscapeFromTheWoods
 
                 route.Add(distanceToMonkey.First().Value.First());
                 monkey.tree = distanceToMonkey.First().Value.First();
+
+                await Task.WhenAll(tasks);
             }
             while (true);
         }
@@ -201,11 +194,8 @@ namespace EscapeFromTheWoods
 
         private async Task WriteRouteToDBAsync(Monkey monkey, List<Tree> route)
         {
-            // Simulate an asynchronous database write operation (replace with your actual asynchronous code)
-            await Task.Delay(100);  // Placeholder for actual asynchronous code logic
-
             Console.WriteLine($"{woodID}: Writing route to DB for {woodID},{monkey.name}");
-            // Your database write logic here
+            WriteRouteToDB(monkey, route);
         }
     }
 }

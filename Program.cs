@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace EscapeFromTheWoods
 {
@@ -9,43 +11,65 @@ namespace EscapeFromTheWoods
         static async Task Main(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
+            Stopwatch stopwatch2 = new Stopwatch();
             stopwatch.Start();
-            Console.WriteLine("Hello World!");
-            string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True";
+             string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True"; //sql
+            // string connectionString = @"mongodb+srv://samcasters:26NoekiePoekie@belgica2023donderdag.wqre6jk.mongodb.net/et/"; //mongodb
             DBwriter db = new DBwriter(connectionString);
+            WoodBuilder woodBuilder = new WoodBuilder();
 
             string path = @"C:\Users\samca\Documents\programerenSpecialisatie\OpdrachtEscapeTheWoods\monkey";
+
+            List<Task<Wood>> tasksGetWood = new List<Task<Wood>>();
             Map m1 = new Map(0, 500, 0, 500);
-            Wood w1 = WoodBuilder.GetWood(500, m1, path,db);
+            tasksGetWood.Add(woodBuilder.GetWood(500, m1, path, db));
+            
+            Map m2 = new Map(0, 200, 0, 400);
+            tasksGetWood.Add(woodBuilder.GetWood(2500, m2, path, db));
+
+            Map m3 = new Map(0, 400, 0, 400);
+            tasksGetWood.Add(woodBuilder.GetWood(2000, m3, path, db));
+            Wood[] woods = await Task.WhenAll(tasksGetWood);
+            Wood w1 = woods[0];
+            Wood w2 = woods[1];
+            Wood w3 = woods[2];
+            Console.WriteLine("1");
             w1.PlaceMonkey("Alice", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Janice", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Toby", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Mindy", IDgenerator.GetMonkeyID());
             w1.PlaceMonkey("Jos", IDgenerator.GetMonkeyID());
             
-            Map m2 = new Map(0, 200, 0, 400);
-            Wood w2 = WoodBuilder.GetWood(2500, m2, path,db);
             w2.PlaceMonkey("Tom", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Jerry", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Tiffany", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Mozes", IDgenerator.GetMonkeyID());
             w2.PlaceMonkey("Jebus", IDgenerator.GetMonkeyID());
 
-            Map m3 = new Map(0, 400, 0, 400);
-            Wood w3 = WoodBuilder.GetWood(2000, m3, path,db);
             w3.PlaceMonkey("Kelly", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kenji", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kobe", IDgenerator.GetMonkeyID());
             w3.PlaceMonkey("Kendra", IDgenerator.GetMonkeyID());
-
-            w1.WriteWoodToDB();
-            w2.WriteWoodToDB();
-            w3.WriteWoodToDB();
-
-            await w1.Escape();
-            await w2.Escape();
-            await w3.Escape();
-            
+            Console.WriteLine("2");
+            stopwatch2.Start();
+            List<Task> tasksWrite = new List<Task>
+            {
+                w1.WriteWoodToDB(),
+                w2.WriteWoodToDB(),
+                w3.WriteWoodToDB()
+            };
+            await Task.WhenAll(tasksWrite);
+            stopwatch2.Stop();
+            Console.WriteLine("Time elapsed on writeDB: {0}", stopwatch2.Elapsed);
+            Console.WriteLine("3");
+            List<Task> tasksEscape = new List<Task>
+            {
+                w1.Escape(),
+                w2.Escape(),
+                w3.Escape()
+            };
+            await Task.WhenAll(tasksEscape);
+            Console.WriteLine("4");
             stopwatch.Stop();
             // Write result.
             Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);

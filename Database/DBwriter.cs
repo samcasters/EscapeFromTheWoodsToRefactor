@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace EscapeFromTheWoods
 {
@@ -19,7 +20,16 @@ namespace EscapeFromTheWoods
             SqlConnection connection = new SqlConnection(connectionString);
             return connection;
         }
-        public void WriteWoodRecords(List<DBWoodRecord> data)
+        public async void WriteWoodRecords(List<DBWoodRecord> data)
+        {
+            List<Task> tasks = new List<Task>();
+            foreach (DBWoodRecord record in data)
+            {
+               tasks.Add(WriteWoodRecord(record));
+            }
+            await Task.WhenAll(tasks);
+        }
+        public async Task WriteWoodRecord(DBWoodRecord data)
         {
             SqlConnection connection = getConnection();
             string query = "INSERT INTO dbo.WoodRecords (woodID,treeID,x,y) VALUES(@woodID,@treeID,@x,@y)";
@@ -34,14 +44,12 @@ namespace EscapeFromTheWoods
                     command.Parameters.Add(new SqlParameter("@y", SqlDbType.Int));
 
                     command.CommandText = query;
-                    foreach (var x in data)
-                    {
-                        command.Parameters["@woodID"].Value = x.woodID;
-                        command.Parameters["@treeID"].Value = x.treeID;
-                        command.Parameters["@x"].Value = x.x;
-                        command.Parameters["@y"].Value = x.y;
+
+                        command.Parameters["@woodID"].Value = data.woodID;
+                        command.Parameters["@treeID"].Value = data.treeID;
+                        command.Parameters["@x"].Value = data.x;
+                        command.Parameters["@y"].Value = data.y;
                         command.ExecuteNonQuery();
-                    }
                 }
                 catch (Exception ex)
                 {
