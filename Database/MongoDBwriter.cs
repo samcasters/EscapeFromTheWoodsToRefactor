@@ -17,19 +17,13 @@ namespace EscapeFromTheWoods.Database
 {
     public class MongoDBwriter
     {
-        //collection.InsertOne(document);
-        //await collection.InsertOneAsync(document);
-
-
         public MongoDBwriter(string connectionString)
         {
-            this.connectionString = connectionString;
             dbClient = new MongoClient(connectionString);
             database = dbClient.GetDatabase("EscapeTheWoods");
         }
         private IMongoClient dbClient;
         private IMongoDatabase database;
-        private string connectionString;
         
         
         public async Task WritePathAsync(PathModel path)

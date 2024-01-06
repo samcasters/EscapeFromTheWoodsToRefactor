@@ -12,14 +12,15 @@ namespace EscapeFromTheWoods
         static async Task Main(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
-            Stopwatch stopwatch2 = new Stopwatch();
             stopwatch.Start();
+
+
             //string connectionString = @"Data Source=DESKTOP-PJRLO8E\SQLEXPRESS;Initial Catalog=monkeys;Integrated Security=True"; //sql
             string connectionString = @"mongodb+srv://samcasters:26NoekiePoekie@belgica2023donderdag.wqre6jk.mongodb.net/et/"; //mongodb
             MongoDBwriter db = new MongoDBwriter(connectionString);
             WoodBuilder woodBuilder = new WoodBuilder();
-
             string path = @"C:\Users\samca\Documents\programerenSpecialisatie\OpdrachtEscapeTheWoods\monkey";
+
 
             List<Task<Wood>> tasksGetWood = new List<Task<Wood>>();
             Map m1 = new Map(0, 500, 0, 500);
@@ -34,7 +35,9 @@ namespace EscapeFromTheWoods
             Wood w1 = woods[0];
             Wood w2 = woods[1];
             Wood w3 = woods[2];
-            Console.WriteLine("1");
+
+
+            Console.WriteLine("1: place monkeys");
             w1.PlaceMonkey("Alice", IDgenerator.GetNewID());
             w1.PlaceMonkey("Janice", IDgenerator.GetNewID());
             w1.PlaceMonkey("Toby", IDgenerator.GetNewID());
@@ -51,8 +54,9 @@ namespace EscapeFromTheWoods
             w3.PlaceMonkey("Kenji", IDgenerator.GetNewID());
             w3.PlaceMonkey("Kobe", IDgenerator.GetNewID());
             w3.PlaceMonkey("Kendra", IDgenerator.GetNewID());
-            Console.WriteLine("2");
-            stopwatch2.Start();
+
+
+            Console.WriteLine("2: write wood to database");
             List<Task> tasksWrite = new List<Task>
             {
                 w1.WriteWoodToDB(),
@@ -60,9 +64,9 @@ namespace EscapeFromTheWoods
                 w3.WriteWoodToDB()
             };
             await Task.WhenAll(tasksWrite);
-            stopwatch2.Stop();
-            Console.WriteLine("Time elapsed on writeDB: {0}", stopwatch2.Elapsed);
-            Console.WriteLine("3");
+
+
+            Console.WriteLine("3: escape");
             List<Task> tasksEscape = new List<Task>
             {
                 w1.Escape(),
@@ -70,9 +74,9 @@ namespace EscapeFromTheWoods
                 w3.Escape()
             };
             await Task.WhenAll(tasksEscape);
-            Console.WriteLine("4");
+
+
             stopwatch.Stop();
-            // Write result.
             Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
             Console.WriteLine("end");
         }

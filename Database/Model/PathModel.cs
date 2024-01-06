@@ -34,7 +34,7 @@ namespace EscapeFromTheWoods.Database.Model
         {
             var document = new BsonDocument()
             {
-                {"_id",Id },
+                {"_id",new BsonObjectId(Id)},
                 {"seqNr",SeqNr },
                 {"monkeyId",MonkeyId},
                 {"treeId",TreeId}

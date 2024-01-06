@@ -36,10 +36,14 @@ namespace EscapeFromTheWoods
             //this.db = db;
             this.mongoDB = mongoDB;
             WoodModel = new WoodModel(woodID,map.xmax, map.ymax);
+            mongoDB.WriteWood(WoodModel);
         }
+
 
         public async Task PlaceMonkey(string monkeyName, string monkeyID)
         {
+            MonkeyModel monkeyModel = new MonkeyModel(monkeyID, monkeyName);
+            mongoDB.WriteMonkey(monkeyModel);
             int treeNr;
             do
             {
@@ -50,6 +54,7 @@ namespace EscapeFromTheWoods
             monkeys.Add(m);
             trees[treeNr].hasMonkey = true;
         }
+
 
         public async void WriteEscaperoutesToBitmap(List<List<Tree>> routes)
         {
@@ -98,21 +103,6 @@ namespace EscapeFromTheWoods
             graphics.DrawLine(pen, x1, y1, x2, y2);
         }
 
-        private async Task ProcessTreeAsync(Tree tree, SortedList<double, List<Tree>> distanceToMonkey, Tree monkeyTree)
-        {
-
-            double d = Math.Sqrt(Math.Pow(tree.x - monkeyTree.x, 2) + Math.Pow(tree.y - monkeyTree.y, 2));
-
-            // Ensure the distanceToMonkey list is initialized before adding elements
-            if (distanceToMonkey.TryGetValue(d, out var treeList))
-            {
-                treeList.Add(tree);
-            }
-            else
-            {
-                distanceToMonkey.Add(d, new List<Tree>() { tree });
-            }
-        }
 
         public async Task Escape()
         {
@@ -161,6 +151,21 @@ namespace EscapeFromTheWoods
             }
             while (true);
         }
+        private async Task ProcessTreeAsync(Tree tree, SortedList<double, List<Tree>> distanceToMonkey, Tree monkeyTree)
+        {
+
+            double d = Math.Sqrt(Math.Pow(tree.x - monkeyTree.x, 2) + Math.Pow(tree.y - monkeyTree.y, 2));
+
+            // Ensure the distanceToMonkey list is initialized before adding elements
+            if (distanceToMonkey.TryGetValue(d, out var treeList))
+            {
+                treeList.Add(tree);
+            }
+            else
+            {
+                distanceToMonkey.Add(d, new List<Tree>() { tree });
+            }
+        }
         private async void WriteRouteToDB(Monkey monkey, List<Tree> route)
         {
             List<PathModel> paths = new List<PathModel>();
@@ -187,11 +192,11 @@ namespace EscapeFromTheWoods
             await Task.WhenAll(tasks);
         }
 
+
         public async Task WriteWoodToDB()
         {
             try
             {
-                await Console.Out.WriteLineAsync("write wood ping");
                 List<Task> tasks = new List<Task>();
                 List<TreeModel> treeModels = new List<TreeModel>();
                 foreach (Tree t in trees)
