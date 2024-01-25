@@ -17,7 +17,6 @@ namespace EscapeFromTheWoods.Database.Model
             LocY = locY;
             WoodId = woodId;
         }
-
         public TreeModel(string id, int locX, int locY, string woodId)
         {
             Id = id;

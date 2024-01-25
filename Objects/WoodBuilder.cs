@@ -25,7 +25,7 @@ namespace EscapeFromTheWoods
                 }
                 await Task.WhenAll(tasks);
 
-                Wood w = new Wood(IDgenerator.GetNewID(), trees, map, path, db);
+                Wood w = new Wood(IDgenerator.GetNewID(), trees, map, db);
                 return w;
             }
             catch (Exception ex)
@@ -37,8 +37,8 @@ namespace EscapeFromTheWoods
         {
             try
             {
-                Tree tree = new Tree(IDgenerator.GetNewID(), r.Next(map.xmin, map.xmax), r.Next(map.ymin, map.ymax));
-                if (!trees.Contains(tree) & !string.IsNullOrEmpty(tree.treeID))
+                Tree tree = new Tree(IDgenerator.GetNewID(), r.Next(map.Xmin, map.Xmax), r.Next(map.Ymin, map.Ymax));
+                if (!trees.Contains(tree) & !string.IsNullOrEmpty(tree.Id))
                 {
                     trees.Add(tree);
                 }

@@ -8,29 +8,28 @@ using ZstdSharp.Unsafe;
 
 namespace EscapeFromTheWoods.Database.Model
 {
-    public class MonkeyModel
+    public class RouteModel
     {
-        public MonkeyModel(string name)
-        {
-            Name = name;
-        }
-        public MonkeyModel(string id, string name)
+        public RouteModel(string id, List<PathModel> paths)
         {
             Id = id;
-            Name = name;
+            Paths = paths;
         }
 
         public string Id { get; set; }
-        public string Name { get; set; }
+        public List<PathModel> Paths { get; set; }
 
         public BsonDocument GenerateBson()
         {
+            var bsonPaths = new BsonArray();
+            foreach (var path in Paths)
+            {
+                bsonPaths.Add(path.GenerateBson());
+            }
             var document = new BsonDocument()
             {
-
                 {"_id",new BsonObjectId(Id)},
-                {"name",Name }
-                
+                {"paths",bsonPaths }
             };
             return document;
         }

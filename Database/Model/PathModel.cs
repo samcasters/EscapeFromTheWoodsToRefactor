@@ -9,25 +9,24 @@ namespace EscapeFromTheWoods.Database.Model
 {
     public class PathModel
     {
-        public PathModel(int seqNr, string monkeyId, string treeId)
+        public PathModel(int seqNr, MonkeyModel monkey, TreeModel tree)
         {
             SeqNr = seqNr;
-            MonkeyId = monkeyId;
-            TreeId = treeId;
+            Monkey = monkey;
+            Tree = tree;
         }
-
-        public PathModel(string id, int seqNr, string monkeyId, string treeId)
+        public PathModel(string id, int seqNr, MonkeyModel monkey, TreeModel tree)
         {
             Id = id;
             SeqNr = seqNr;
-            MonkeyId = monkeyId;
-            TreeId = treeId;
+            Monkey = monkey;
+            Tree = tree;
         }
 
         public string Id { get; set; }
         public int SeqNr { get; set; }
-        public string MonkeyId { get; set; }
-        public string TreeId { get; set; }
+        public MonkeyModel Monkey { get; set; }
+        public TreeModel Tree { get; set; }
 
 
         public BsonDocument GenerateBson()
@@ -36,8 +35,8 @@ namespace EscapeFromTheWoods.Database.Model
             {
                 {"_id",new BsonObjectId(Id)},
                 {"seqNr",SeqNr },
-                {"monkeyId",MonkeyId},
-                {"treeId",TreeId}
+                {"monkey",Monkey.GenerateBson()},
+                {"tree",Tree.GenerateBson()}
             };
             return document;
         }

@@ -1,6 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.IO;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.Threading.Tasks;
+using EscapeFromTheWoods.Database;
+using EscapeFromTheWoods.Database.Model;
+using EscapeFromTheWoods.Database.exceptions;
 
 namespace EscapeFromTheWoods
 {
@@ -8,30 +15,42 @@ namespace EscapeFromTheWoods
     {
         public Tree(string treeID, int x, int y)
         {
-            this.treeID = treeID;
-            this.x = x;
-            this.y = y;
-            this.hasMonkey = false;
+            Id = treeID;
+            X = x;
+            Y = y;
+            HasMonkey = false;
         }
-        public string treeID { get; set; }
-        public int x { get; set; }
-        public int y { get; set; }
-        public bool hasMonkey { get; set; }
+        public string Id { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool HasMonkey { get; set; }
+
+        public async Task TreeToTreeModels(List<TreeModel> treeModels, WoodModel wood)
+        {
+            try
+            {
+                TreeModel treeModel = new TreeModel(Id, X, Y, wood.Id);
+                treeModels.Add(treeModel);
+            }
+            catch (Exception ex)
+            {
+                throw new ObjectException($"TreeToTreeModels  id:{Id}", ex);
+            }
+        }
 
         public override bool Equals(object obj)
         {
             return obj is Tree tree &&
-                   x == tree.x &&
-                   y == tree.y;
+                   X == tree.X &&
+                   Y == tree.Y;
         }
-
         public override int GetHashCode()
         {
-            return HashCode.Combine(x, y);
+            return HashCode.Combine(X, Y);
         }
         public override string ToString()
         {
-            return $"{treeID},{x},{y}";
+            return $"{Id},{X},{Y}";
         }
     }
 }

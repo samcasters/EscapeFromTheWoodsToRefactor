@@ -24,78 +24,89 @@ namespace EscapeFromTheWoods.Database
         }
         private IMongoClient dbClient;
         private IMongoDatabase database;
-        
-        
-        public async Task WritePathAsync(PathModel path)
-        {
-            var pathCollection = database.GetCollection<BsonDocument>("path");
-            pathCollection.InsertOne(path.GenerateBson());
-        }
-        public void WriteMonkey(MonkeyModel monkey)
-        {
-            var monkeyCollection = database.GetCollection<BsonDocument>("monkey");
-            monkeyCollection.InsertOne(monkey.GenerateBson());
-        }
-        public async void WriteTree(TreeModel tree)
-        {
-            try
-            {
-                var treeCollection = database.GetCollection<BsonDocument>("tree");
-                treeCollection.InsertOne(tree.GenerateBson());
-            }
-            catch (Exception ex)
-            {
-                throw new GeneralException("WriteTree", ex);
-            }
-        }
-        public async void WriteTrees(List<TreeModel> trees) 
-        {
-            try
-            {
-                var treeCollection = database.GetCollection<BsonDocument>("tree");
-                treeCollection.InsertMany(await GeneratBsonTreesAsync(trees));
-            }
-            catch (Exception ex)
-            {
-                throw new GeneralException("WriteTrees", ex);
-            }
-        }
+
         public void WriteWood(WoodModel wood)
         {
-            var woodCollection = database.GetCollection<BsonDocument>("wood");
+            Console.Out.WriteLine($"writeing wood id {wood.Id}");
+            var woodCollection = database.GetCollection<BsonDocument>("FullWoods");
             woodCollection.InsertOne(wood.GenerateBson());
+            Console.Out.WriteLine($"finiched wood id {wood.Id}");
         }
-
-        private async Task<List<BsonDocument>> GeneratBsonTreesAsync(List<TreeModel> trees)
+        public async Task WriteRouteAsync(RouteModel route)
         {
-            try
-            {
-                List<Task> tasks = new List<Task>();
-                List<BsonDocument> bsons = new List<BsonDocument>();
-                foreach (TreeModel tree in trees)
-                {
-                    tasks.Add(AddAndMakeBsonTreeAsync(bsons, tree));
-                }
-                await Task.WhenAll(tasks);
-                return bsons;
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            Console.Out.WriteLine($"writing wood id {route.Id}");
+            var pathCollection = database.GetCollection<BsonDocument>("Route");
+            pathCollection.InsertOne(route.GenerateBson());
+            Console.Out.WriteLine($"finiched wood id {route.Id}");
         }
-        private async Task AddAndMakeBsonTreeAsync(List<BsonDocument> bsons, TreeModel tree)
-        {
-            try
-            {
-                bsons.Add(tree.GenerateBson());
-            }
-            catch (Exception)
-            {
 
-                throw;
-            }
-        }
+
+
+        //public async Task WritePathAsync(PathModel path)
+        //{
+        //    var pathCollection = database.GetCollection<BsonDocument>("FullPath");
+        //    pathCollection.InsertOne(path.GenerateBson());
+        //}
+        
+        //public void WriteMonkey(MonkeyModel monkey)
+        //{
+        //    var monkeyCollection = database.GetCollection<BsonDocument>("monkey");
+        //    monkeyCollection.InsertOne(monkey.GenerateBson());
+        //}
+        //public async void WriteTree(TreeModel tree)
+        //{
+        //    try
+        //    {
+        //        var treeCollection = database.GetCollection<BsonDocument>("tree");
+        //        treeCollection.InsertOne(tree.GenerateBson());
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new GeneralException("WriteTree", ex);
+        //    }
+        //}
+        //public async void WriteTrees(List<TreeModel> trees) 
+        //{
+        //    try
+        //    {
+        //        var treeCollection = database.GetCollection<BsonDocument>("tree");
+        //        treeCollection.InsertMany(await GeneratBsonTreesAsync(trees));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new GeneralException("WriteTrees", ex);
+        //    }
+        //}
+        //private async Task<List<BsonDocument>> GeneratBsonTreesAsync(List<TreeModel> trees)
+        //{
+        //    try
+        //    {
+        //        List<Task> tasks = new List<Task>();
+        //        List<BsonDocument> bsons = new List<BsonDocument>();
+        //        foreach (TreeModel tree in trees)
+        //        {
+        //            tasks.Add(AddAndMakeBsonTreeAsync(bsons, tree));
+        //        }
+        //        await Task.WhenAll(tasks);
+        //        return bsons;
+        //    }
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+        //    }
+        //}
+        //private async Task AddAndMakeBsonTreeAsync(List<BsonDocument> bsons, TreeModel tree)
+        //{
+        //    try
+        //    {
+        //        bsons.Add(tree.GenerateBson());
+        //    }
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+        //    }
+        //}
     }
 }
